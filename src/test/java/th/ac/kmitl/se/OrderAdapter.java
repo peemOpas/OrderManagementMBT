@@ -30,16 +30,32 @@ public class OrderAdapter extends ExecutionContext {
     PaymentService paymentService;
     ShippingService shippingService;
     Order order;
+    Address mockAddress;
+    Card card;
     @BeforeExecution
     public void setUp() {
         // Add the code here to be executed before
         // GraphWalk starts traversing the model.
+        orderDB = mock(OrderDB.class);
+        productDB = mock(ProductDB.class);
+        paymentService = mock(PaymentService.class);
+        shippingService = mock(ShippingService.class);
+        order = Mockito.spy(new Order(orderDB, productDB, paymentService, shippingService));
+        card = new Card("561", "Peemopas", 16, 2023);
+        mockAddress = new Address("name", "line1", "line2", "district", "city", "postcode");
 
     }
 
     @Edge()
     public void reset() {
         System.out.println("Edge reset");
+        orderDB = mock(OrderDB.class);
+        productDB = mock(ProductDB.class);
+        paymentService = mock(PaymentService.class);
+        shippingService = mock(ShippingService.class);
+        order = Mockito.spy(new Order(orderDB, productDB, paymentService, shippingService));
+        mockAddress = new Address("name", "line1", "line2", "district", "city", "postcode");
+        card = new Card("561", "Peemopas", 16, 2023);
     }
 
     @Edge()
