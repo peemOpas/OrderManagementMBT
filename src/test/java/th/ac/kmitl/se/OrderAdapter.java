@@ -69,9 +69,8 @@ public class OrderAdapter extends ExecutionContext {
 
     @Edge()
     public void cancel() {
-        System.out.println("Edge cancel");
         order.cancel();
-        assertEquals(Order.Status.CANCELED, order.getStatus());
+        System.out.println("Edge cancel");
     }
 
     @Edge()
@@ -91,25 +90,47 @@ public class OrderAdapter extends ExecutionContext {
     @Edge()
     public void paySuccess() {
         System.out.println("Edge paySuccess");
+        ArgumentCaptor<PaymentCallback> callbackCaptor = ArgumentCaptor.forClass(PaymentCallback.class);
+        verify(paymentService).pay(any(Card.class), anyFloat(), callbackCaptor.capture());
+        callbackCaptor.getValue().onSuccess("success");
+        assertEquals(Order.Status.PAID, order.getStatus());
+        assertEquals(order.paymentConfirmCode, "success");
     }
 
     @Edge()
     public void payError() {
+        if (order.getStatus() == Order.Status.PAYMENT_ERROR) {
+            System.out.println("Payment Error");
+        }
         System.out.println("Edge payError");
     }
 
     @Edge()
     public void ship() {
+        order.ship();
         System.out.println("Edge ship");
     }
 
     @Edge()
     public void refundSuccess() {
         System.out.println("Edge refundSuccess");
+        order.refund();
+        //refund from payment service
+        ArgumentCaptor<PaymentCallback> callbackCaptorRefund = ArgumentCaptor.forClass(PaymentCallback.class);
+        verify(paymentService).refund(any(), callbackCaptorRefund.capture());
+        callbackCaptorRefund.getValue().onSuccess("success");
+        assertEquals(Order.Status.REFUNDED, order.getStatus());
     }
 
     @Edge()
     public void refundError() {
         System.out.println("Edge refundError");
+        order.refund();
+        assertEquals(Order.Status.AWAIT_REFUND, order.getStatus());
+        //refund from payment service
+        ArgumentCaptor<PaymentCallback> callbackCaptorRefund = ArgumentCaptor.forClass(PaymentCallback.class);
+        verify(paymentService).refund(any(), callbackCaptorRefund.capture());
+        callbackCaptorRefund.getValue().onError("error");
+        assertEquals(Order.Status.REFUND_ERROR, order.getStatus());
     }
 }
