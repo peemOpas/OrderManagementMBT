@@ -61,21 +61,31 @@ public class OrderAdapter extends ExecutionContext {
     @Edge()
     public void place() {
         System.out.println("Edge place");
+        when(orderDB.getOrderID()).thenReturn(1);
+
+        order.place("John", "Apple Watch", 2, mockAddress);
+        assertEquals(Order.Status.PLACED, order.getStatus());
     }
 
     @Edge()
     public void cancel() {
         System.out.println("Edge cancel");
+        order.cancel();
+        assertEquals(Order.Status.CANCELED, order.getStatus());
     }
 
     @Edge()
     public void pay() {
         System.out.println("Edge pay");
+        order.pay(card);
+        assertEquals(Order.Status.PAYMENT_CHECK, order.getStatus());
     }
 
     @Edge()
     public void retryPay() {
-        System.out.println("Edge retryPay");
+        System.out.println("Retry Pay");
+        order.pay(card);
+        assertEquals(Order.Status.PAYMENT_CHECK, order.getStatus());
     }
 
     @Edge()
